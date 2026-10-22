@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Map as MapIcon, Radar, Wind, Waves, Zap, ArrowRight, ShieldCheck } from 'lucide-react'
+import { Map as MapIcon, Radar, Wind, Zap, ArrowRight, ShieldCheck } from 'lucide-react'
 import { useI18n } from '../contexts/I18nContext'
 import { useVigilance } from '../lib/useVigilance'
 
@@ -70,11 +70,8 @@ export default function LandingPage() {
             <span className="w-2.5 h-2.5 rounded-full bg-[#febc2e]" />
             <span className="w-2.5 h-2.5 rounded-full bg-[#28c840]" />
           </div>
-          <div className="relative h-[300px] md:h-[420px]">
-            <img src="/map-preview.png" alt="MétéoLive map" className="w-full h-full object-cover opacity-90" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
-            <div className="absolute inset-0 flex items-center justify-center" style={{ display: 'none' }} id="fallback-preview">
-              <Waves size={40} className="text-[var(--muted)]" />
-            </div>
+          <div className="relative h-[300px] md:h-[460px]">
+            <iframe src="/app?embed=1" title="MétéoLive live map" className="w-full h-full border-0" loading="lazy" />
           </div>
         </div>
       </div>
