@@ -1,18 +1,35 @@
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 :root {
-  --bg: #05070d;
-  --glass: rgba(13, 18, 30, 0.72);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --text: #eef1f8;
-  --muted: #7c8598;
-  --accent: #ff7a1a;
-  --accent-2: #ffb020;
+  --bg: #0b1220;
+  --bg-2: #0e1628;
+  --surface: #131e33;
+  --surface-2: #18243c;
+  --border: rgba(148, 163, 184, 0.14);
+  --glass: rgba(15, 23, 40, 0.78);
+  --glass-border: rgba(255, 255, 255, 0.07);
+  --text: #e9eef7;
+  --muted: #8792a5;
+  --brand: #4da3ff;
   --ok: #35d08c;
   --warn: #ffd23f;
   --orange: #ff7a1a;
   --red: #ff2d55;
+  --skel: rgba(148, 163, 184, 0.12);
+}
+
+[data-theme="light"] {
+  --bg: #f4f6fb;
+  --bg-2: #eaeef7;
+  --surface: #ffffff;
+  --surface-2: #f2f5fa;
+  --border: rgba(30, 41, 59, 0.12);
+  --glass: rgba(255, 255, 255, 0.82);
+  --glass-border: rgba(15, 23, 42, 0.08);
+  --text: #16202f;
+  --muted: #5b6b83;
+  --skel: rgba(30, 41, 59, 0.10);
 }
 
 html, body, #root { height: 100%; margin: 0; }
@@ -24,6 +41,7 @@ body {
   overflow: hidden;
 }
 h1, h2, h3, .display { font-family: 'Sora', 'Inter', sans-serif; }
+.tnum, .font-mono { font-variant-numeric: tabular-nums; }
 
 .glass {
   background: var(--glass);
@@ -32,29 +50,44 @@ h1, h2, h3, .display { font-family: 'Sora', 'Inter', sans-serif; }
   border: 1px solid var(--glass-border);
 }
 
-/* dark map: invert light OSM tiles */
-.leaflet-container { background: #0a0f1a; font-family: 'Inter', sans-serif; }
-.leaflet-tile-pane {
-  filter: invert(1) hue-rotate(190deg) brightness(0.85) contrast(1.05) saturate(0.7);
+/* skeleton */
+.skel {
+  position: relative;
+  overflow: hidden;
+  background: var(--skel);
+  border-radius: 8px;
 }
-.leaflet-control-attribution {
-  background: rgba(0,0,0,0.4) !important;
-  color: #666 !important;
-  font-size: 9px !important;
+.skel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(148,163,184,0.14), transparent);
+  animation: shimmer 1.4s infinite;
 }
-.leaflet-control-attribution a { color: #888 !important; }
+@keyframes shimmer { to { transform: translateX(100%); } }
 
-.fade-in { animation: fadeIn .35s ease both; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.leaflet-container { background: var(--bg-2); font-family: 'Inter', sans-serif; }
+.leaflet-tile-pane { filter: invert(1) hue-rotate(190deg) brightness(0.85) contrast(1.05) saturate(0.7); }
+[data-theme="light"] .leaflet-tile-pane { filter: none; }
+.leaflet-control-attribution { background: rgba(0,0,0,0.35) !important; color: #667 !important; font-size: 9px !important; }
+.leaflet-control-attribution a { color: #889 !important; }
 
+/* motion only on state change; respect reduced motion */
+.fade-in { animation: fadeIn .3s ease both; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 .pulse-dot { animation: pulse 2s infinite; }
-@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .45; } }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
+@media (prefers-reduced-motion: reduce) {
+  .fade-in, .pulse-dot, .skel::after { animation: none !important; }
+}
+
+:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 6px; }
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
 
-/* city labels */
 .city-label-wrap { background: transparent !important; border: none !important; }
 .city-label {
   display: inline-block;
@@ -67,7 +100,6 @@ h1, h2, h3, .display { font-family: 'Sora', 'Inter', sans-serif; }
   transform: translate(-50%, -50%);
 }
 .wind-canvas { z-index: 450; }
-
 .bolt-wrap { background: transparent !important; border: none !important; }
 .bolt-icon { font-size: 13px; filter: drop-shadow(0 0 4px rgba(255,210,63,0.9)); animation: boltIn .3s ease; display:inline-block; transform: translateY(-8px); }
 @keyframes boltIn { from { transform: translateY(-14px) scale(1.6); opacity: 0; } to { transform: translateY(-8px) scale(1); opacity: 1; } }

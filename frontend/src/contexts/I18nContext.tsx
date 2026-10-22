@@ -44,6 +44,9 @@ const dict = {
     feat3_t: 'Vent animé', feat3_d: 'Flux animé basé sur les mesures réelles de vitesse et direction.',
     feat4_t: 'Crues & éclairs', feat4_d: 'Niveaux des rivières (Hub\'Eau) et foudre en direct (Blitzortung).',
     open_data: '100% données ouvertes : Météo-France / Meteoalarm, Open-Meteo, RainViewer, Hub\'Eau, Blitzortung',
+    storm: 'Orages', rain_flood: 'Pluie-inondation', flood_r: 'Inondations', wind_v: 'Vent violent',
+    snow: 'Neige-verglas', waves_s: 'Vagues-submersion', cold_e: 'Grand froid', heat_w: 'Canicule', avalanche: 'Avalanche',
+    filter_all: 'Tous phénomènes', consequences: 'Conséquences possibles',
   },
   en: {
     title: 'MétéoLive',
@@ -86,6 +89,9 @@ const dict = {
     feat3_t: 'Animated wind', feat3_d: 'Animated flow based on real speed and direction measurements.',
     feat4_t: 'Floods & lightning', feat4_d: 'River levels (Hub\'Eau) and live lightning (Blitzortung).',
     open_data: '100% open data: Météo-France / Meteoalarm, Open-Meteo, RainViewer, Hub\'Eau, Blitzortung',
+    storm: 'Thunderstorms', rain_flood: 'Rain-flood', flood_r: 'Flooding', wind_v: 'Violent wind',
+    snow: 'Snow-ice', waves_s: 'Waves-submersion', cold_e: 'Extreme cold', heat_w: 'Heatwave', avalanche: 'Avalanche',
+    filter_all: 'All phenomena', consequences: 'Possible consequences',
   },
 } as const
 

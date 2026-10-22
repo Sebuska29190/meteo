@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { MapContainer, TileLayer, GeoJSON, Marker, CircleMarker, Tooltip, useMap, useMapEvents } from "react-leaflet"
 import L from 'leaflet'
-import { Search, Play, Pause, X, Radar as RadarIcon, Plus, Minus, Crosshair, Bell, BellOff, Clock, Waves, Zap, Star, TrendingUp, Link as LinkIcon } from 'lucide-react'
+import { Search, Play, Pause, X, Radar as RadarIcon, Plus, Minus, Crosshair, Bell, BellOff, Clock, Waves, Zap, Star, TrendingUp, Link as LinkIcon, Sun, Moon } from 'lucide-react'
 import 'leaflet/dist/leaflet.css'
 import { useI18n } from '../contexts/I18nContext'
 import { useVigilance, type VigilanceLevel } from '../lib/useVigilance'
@@ -83,6 +83,10 @@ export default function MapPage() {
   
   const [watched, setWatched] = useState<string[]>(() => JSON.parse(localStorage.getItem('watched') || '[]'))
   const [history, setHistory] = useState<number[]>(() => JSON.parse(localStorage.getItem('alertHistory') || '[]'))
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => (localStorage.getItem('theme') as 'dark' | 'light') || 'dark')
+  const [lvlFilter, setLvlFilter] = useState<number[]>([])
+  const [phenoFilter, setPhenoFilter] = useState<string>('all')
+  useEffect(() => { document.documentElement.dataset.theme = theme; localStorage.setItem('theme', theme) }, [theme])
   const { data: weather, loading: wLoading } = useWeather(point?.lat ?? null, point?.lon ?? null)
   const ivRef = useRef<number | null>(null)
   const seenIds = useRef<Set<string> | null>(null)
@@ -207,10 +211,26 @@ export default function MapPage() {
     }
   }
 
-  // grouped by department
+  // grouped by department, with filters
+  const phenoName = (ev: string) => {
+    const e = ev.toLowerCase()
+    if (e.includes('orage')) return t.storm
+    if (e.includes('pluie')) return t.rain_flood
+    if (e.includes('inond')) return t.flood_r
+    if (e.includes('vent')) return t.wind_v
+    if (e.includes('neige') || e.includes('verglas')) return t.snow
+    if (e.includes('vague')) return t.waves_s
+    if (e.includes('froid')) return t.cold_e
+    if (e.includes('canicule')) return t.heat_w
+    if (e.includes('avalanche')) return t.avalanche
+    return ev
+  }
+
   const grouped = useMemo(() => {
     const m = new Map<string, { name: string; level: VigilanceLevel; items: typeof warnings }>()
     warnings.filter((w) => w.level >= 2).forEach((w) => {
+      if (lvlFilter.length && !lvlFilter.includes(w.level)) return
+      if (phenoFilter !== 'all' && phenoName(w.event) !== phenoFilter) return
       w.areas.forEach((name) => {
         const g = m.get(name) || { name, level: 1 as VigilanceLevel, items: [] }
         if (w.level > g.level) g.level = w.level
@@ -219,7 +239,7 @@ export default function MapPage() {
       })
     })
     return [...m.values()].sort((a, b) => b.level - a.level || b.items.length - a.items.length)
-  }, [warnings])
+  }, [warnings, lvlFilter, phenoFilter])
 
   // upcoming (J+1)
   const upcoming = useMemo(() => {
@@ -368,6 +388,10 @@ export default function MapPage() {
             {notifyOn ? <Bell size={14} /> : <BellOff size={14} />}
           </button>
           <div className="w-px h-5 bg-white/10" />
+          <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="px-2.5 py-2.5 text-[var(--muted)] hover:text-white" title="Theme">
+            {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
+          </button>
+          <div className="w-px h-5 bg-white/10" />
           <button onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')} className="px-3 py-2.5 text-xs font-semibold text-[var(--muted)] hover:text-white">
             {lang === 'fr' ? 'EN' : 'FR'}
           </button>
@@ -456,6 +480,7 @@ export default function MapPage() {
                       <span className="text-[9px] text-[var(--muted)] whitespace-nowrap font-mono">{w.expires?.slice(11, 16)} {w.expires?.slice(5, 10)}</span>
                     </div>
                     <div className="text-[var(--muted)] mt-0.5">{w.instruction}</div>
+                    {w.description && <div className="text-[var(--muted)] mt-1 opacity-80">{w.description}</div>}
                   </div>
                 ))}
               </div>
@@ -491,21 +516,44 @@ export default function MapPage() {
                 ))}
               </div>
             )}
-            {loading && <div className="text-xs text-[var(--muted)] p-2">{t.loading}</div>}
+            {loading && (
+              <div className="space-y-2 p-1">
+                {[0, 1, 2, 3].map((i) => (
+                  <div key={i} className="skel h-[52px] w-full" />
+                ))}
+              </div>
+            )}
             {error && <div className="text-xs text-[var(--red)] p-2">{error}</div>}
             {!loading && grouped.length === 0 && <div className="text-xs text-[var(--muted)] p-2">{t.no_alerts}</div>}
+            {/* FILTERS */}
+            {!loading && (
+              <div className="flex items-center gap-1.5 flex-wrap px-1 pb-2">
+                {([2, 3, 4] as VigilanceLevel[]).map((l) => (
+                  <button key={l} onClick={() => setLvlFilter((f) => (f.includes(l) ? f.filter((x) => x !== l) : [...f, l]))}
+                    className={`text-[9px] font-bold px-2 py-1 rounded-full border transition ${lvlFilter.includes(l) ? 'text-white' : 'text-[var(--muted)]'}`}
+                    style={lvlFilter.includes(l) ? { background: LEVEL_COLOR[l], borderColor: LEVEL_COLOR[l] } : { borderColor: 'var(--border)' }}>
+                    {l === 2 ? t.yellow : l === 3 ? t.orange : t.red}
+                  </button>
+                ))}
+                <select value={phenoFilter} onChange={(e) => setPhenoFilter(e.target.value)}
+                  className="text-[9px] font-semibold ml-auto bg-[var(--surface)] border border-[var(--border)] rounded-full px-2 py-1 outline-none text-[var(--text)]">
+                  <option value="all">{t.filter_all}</option>
+                  {[t.storm, t.rain_flood, t.flood_r, t.wind_v, t.snow, t.waves_s, t.cold_e, t.heat_w].map((p) => <option key={p} value={p}>{p}</option>)}
+                </select>
+              </div>
+            )}
             <div className="space-y-1.5">
               {grouped.map((g) => (
                 <button key={g.name} onClick={() => setSelected({ name: g.name, code: Object.entries(centroids).find(([c]) => deptColors[c] === g.level)?.[0] || '' })}
                   className="block w-full text-left rounded-xl p-2.5 hover:bg-white/5 transition" style={{ borderLeft: `3px solid ${LEVEL_COLOR[g.level]}` }}>
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-xs font-bold text-[var(--text)]">{g.name}</span>
-                    <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded" style={{ background: `${LEVEL_COLOR[g.level]}22`, color: LEVEL_COLOR[g.level] }}>
+                    <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded tnum" style={{ background: `${LEVEL_COLOR[g.level]}22`, color: LEVEL_COLOR[g.level] }}>
                       {g.items.length}
                     </span>
                   </div>
                   <div className="text-[10px] mt-0.5 truncate" style={{ color: LEVEL_COLOR[g.level] }}>
-                    {g.items.map((w) => w.headline.replace(/^Vigilance (jaune|orange|rouge) /, '')).join(' · ')}
+                    {[...new Set(g.items.map((w) => phenoName(w.event)))].join(' · ')}
                   </div>
                 </button>
               ))}
