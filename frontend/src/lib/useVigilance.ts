@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-export type VigilanceLevel = 1 | 2 | 3 | 4 // green, yellow, orange, red
+export type VigilanceLevel = 1 | 2 | 3 | 4
 
 export interface Warning {
   id: string
@@ -13,11 +13,11 @@ export interface Warning {
   type: string
   onset: string
   expires: string
+  sent: string
   areas: string[]
   lang: string
 }
 
-// Department name -> code
 const DEPT_CODE: Record<string, string> = {
   'Ain': '01', 'Aisne': '02', 'Allier': '03', 'Alpes-de-Haute-Provence': '04',
   'Hautes-Alpes': '05', 'Alpes-Maritimes': '06', 'Ardèche': '07', 'Ardennes': '08',
@@ -77,17 +77,14 @@ export function useVigilance() {
           const areas = (fr.area || []).map((a: any) => a.areaDesc).filter(Boolean)
           return {
             id: w?.alert?.identifier || w?.uuid,
-            event: fr.event || '',
-            headline: fr.headline || '',
-            description: fr.description || '',
-            instruction: fr.instruction || '',
+            event: fr.event || '', headline: fr.headline || '',
+            description: fr.description || '', instruction: fr.instruction || '',
             severity: fr.severity || '',
             level: LEVEL_FROM_PARAM(paramLevel),
             type: paramType?.value || '',
-            onset: fr.onset || '',
-            expires: fr.expires || '',
-            areas,
-            lang: fr.language || 'fr-FR',
+            onset: fr.onset || '', expires: fr.expires || '',
+            sent: w?.alert?.sent || '',
+            areas, lang: fr.language || 'fr-FR',
           }
         })
         setWarnings(list)
@@ -100,12 +97,13 @@ export function useVigilance() {
       }
     }
     load()
-    const iv = setInterval(load, 5 * 60 * 1000)
+    const iv = setInterval(load, 2 * 60 * 1000)
     return () => { cancelled = true; clearInterval(iv) }
   }, [])
 
-  // department code -> max level
   const deptColors: Record<string, VigilanceLevel> = {}
+  const lastSent = warnings.reduce((acc, w) => (!acc || (w.sent && w.sent > acc) ? w.sent : acc), '')
+
   warnings.forEach((w) => {
     w.areas.forEach((name) => {
       const code = DEPT_CODE[name]
@@ -116,5 +114,5 @@ export function useVigilance() {
     })
   })
 
-  return { warnings, loading, error, updatedAt, deptColors }
+  return { warnings, loading, error, updatedAt, deptColors, lastSent }
 }
