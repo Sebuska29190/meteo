@@ -2,5 +2,12 @@ name = "meteo-live-api"
 main = "src/index.ts"
 compatibility_date = "2024-09-01"
 
+[triggers]
+crons = ["*/5 * * * *"]
+
+[[kv_namespaces]]
+binding = "PUSH_SUBS"
+id = "be2327e5d1124d43b778cc5515e49654"
+
 [vars]
-# METEOFRANCE_API_KEY set via `wrangler secret put METEOFRANCE_API_KEY`
+VAPID_PUBLIC = "BPSGMZ05rvKacKip-7nyD0wJjWxz_kvdP3TetGWxcUKe8HpNF2qGsfoLCvIfkg-1KxPJwvLi9vq_uS-XzgBPOpY"

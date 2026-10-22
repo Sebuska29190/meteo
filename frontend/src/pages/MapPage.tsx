@@ -68,6 +68,7 @@ export default function MapPage() {
   const markersRef = useRef<any[]>([])
   const deptMeta = useRef<Record<string, { name: string; centroid: [number, number] }>>({})
   const seenIds = useRef<Set<string> | null>(null)
+  const pushSubRef = useRef<PushSubscription | null>(null)
   const ivRef = useRef<number | null>(null)
   const embed = useMemo(() => new URLSearchParams(window.location.search).has('embed'), [])
 
@@ -117,7 +118,20 @@ export default function MapPage() {
   const enableNotifications = async () => {
     if (!('Notification' in window)) return
     if (Notification.permission !== 'granted') await Notification.requestPermission()
-    setNotifyOn(Notification.permission === 'granted' ? !notifyOn : false)
+    const granted = Notification.permission === 'granted'
+    setNotifyOn(granted ? !notifyOn : false)
+    // Web Push subscription
+    if (granted && 'serviceWorker' in navigator && 'PushManager' in window && !pushSubRef.current) {
+      try {
+        const reg = await navigator.serviceWorker.ready
+        const base = import.meta.env.VITE_API_BASE || ''
+        const pub = await fetch(`${base}/api/push/publickey`).then((r) => r.text())
+        const urlB64 = (s: string) => { const pad = '='.repeat((4 - (s.length % 4)) % 4).replace(/=/g, ''); const raw = atob(s.replace(/-/g, '+').replace(/_/g, '/') + pad); return Uint8Array.from([...raw].map((c) => c.charCodeAt(0))) }
+        const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64(pub) })
+        await fetch(`${base}/api/push/subscribe`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...sub.toJSON(), watched }) })
+        pushSubRef.current = sub
+      } catch {}
+    }
   }
   const toggleWatch = (name: string) => {
     setWatched((w) => {
