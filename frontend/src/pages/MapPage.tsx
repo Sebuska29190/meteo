@@ -7,6 +7,8 @@ import { useI18n } from '../contexts/I18nContext'
 import { useVigilance, type VigilanceLevel } from '../lib/useVigilance'
 import { useRadar, radarTileUrl } from '../lib/useRadar'
 import { useWeather } from '../lib/useWeather'
+import { CITIES } from '../lib/cities'
+import WindLayer, { type WindPoint } from '../components/WindLayer'
 
 const GEOJSON_URL = 'https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements.geojson'
 const LEVEL_COLOR: Record<VigilanceLevel, string> = { 1: '#35d08c', 2: '#ffd23f', 3: '#ff7a1a', 4: '#ff2d55' }
@@ -65,6 +67,8 @@ export default function MapPage() {
   const [zoomDelta, setZoomDelta] = useState(0)
   const [notifyOn, setNotifyOn] = useState(false)
   const [toasts, setToasts] = useState<{ id: string; headline: string; level: VigilanceLevel }[]>([])
+  const [windOn, setWindOn] = useState(false)
+  const [windPoints, setWindPoints] = useState<WindPoint[]>([])
   const { data: weather, loading: wLoading } = useWeather(point?.lat ?? null, point?.lon ?? null)
   const ivRef = useRef<number | null>(null)
   const seenIds = useRef<Set<string> | null>(null)
@@ -103,6 +107,26 @@ export default function MapPage() {
     if (Notification.permission !== 'granted') await Notification.requestPermission()
     setNotifyOn(Notification.permission === 'granted' ? !notifyOn : false)
   }
+
+  // wind grid (Open-Meteo, one request)
+  useEffect(() => {
+    if (!windOn || windPoints.length) return
+    const lats: number[] = []
+    const lons: number[] = []
+    for (let lat = 51.4; lat >= 41.8; lat -= 0.8) for (let lon = -5.0; lon <= 9.8; lon += 0.85) { lats.push(+lat.toFixed(2)); lons.push(+lon.toFixed(2)) }
+    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lats.join(',')}&longitude=${lons.join(',')}&current=wind_speed_10m,wind_direction_10m,wind_gusts_10m`)
+      .then((r) => r.json())
+      .then((j) => {
+        const arr = Array.isArray(j) ? j : [j]
+        setWindPoints(arr.map((d: any, i: number) => ({
+          lat: lats[i], lon: lons[i],
+          speed: d.current?.wind_speed_10m ?? 0,
+          dir: d.current?.wind_direction_10m ?? 0,
+          gusts: d.current?.wind_gusts_10m ?? 0,
+        })))
+      })
+      .catch(() => {})
+  }, [windOn])
 
   useEffect(() => {
     if (query.length < 2) { setResults([]); return }
@@ -166,6 +190,11 @@ export default function MapPage() {
         <TileLayer attribution='&copy; OpenStreetMap contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         {geo && <GeoJSON key={JSON.stringify(deptColors)} data={geo} style={(f: any) => styleFor(f, hovered === String(f?.properties?.code))} onEachFeature={onEachFeature} />}
         {radarUrl && <TileLayer url={radarUrl} opacity={0.65} />}
+        {windOn && <WindLayer points={windPoints} />}
+        {CITIES.map((c) => (
+          <Marker key={c.name} position={[c.lat, c.lon]} interactive={false}
+            icon={L.divIcon({ className: 'city-label-wrap', html: `<span class="city-label" style="font-size:${c.pop > 400000 ? 13 : c.pop > 80000 ? 11 : 9.5}px">${c.name}</span>`, iconSize: [0, 0], iconAnchor: [0, 4] })} />
+        ))}
         {Object.entries(centroids).map(([code, c]) => {
           const lvl = deptColors[code]
           if (!lvl || lvl < 2) return null
@@ -212,6 +241,10 @@ export default function MapPage() {
         <div className="glass rounded-xl flex items-center shadow-lg pointer-events-auto">
           <button onClick={() => setRadarOn(!radarOn)} className={`flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold ${radarOn ? 'text-[var(--accent)]' : 'text-[var(--muted)]'}`}>
             <RadarIcon size={14} />{t.radar}
+          </button>
+          <div className="w-px h-5 bg-white/10" />
+          <button onClick={() => setWindOn(!windOn)} className={`px-3 py-2.5 text-xs font-semibold ${windOn ? 'text-[#4aa3ff]' : 'text-[var(--muted)]'}`}>
+            {lang === 'fr' ? 'Vent' : 'Wind'}
           </button>
           <div className="w-px h-5 bg-white/10" />
           <button onClick={enableNotifications} className={`px-2.5 py-2.5 ${notifyOn ? 'text-[var(--ok)]' : 'text-[var(--muted)] hover:text-white'}`} title="Notifications">

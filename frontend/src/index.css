@@ -53,3 +53,17 @@ h1, h2, h3, .display { font-family: 'Sora', 'Inter', sans-serif; }
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
+
+/* city labels */
+.city-label-wrap { background: transparent !important; border: none !important; }
+.city-label {
+  display: inline-block;
+  color: #fff;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  text-shadow: 0 0 4px rgba(0,0,0,0.95), 0 0 2px rgba(0,0,0,0.95), 0 1px 3px rgba(0,0,0,0.9);
+  transform: translate(-50%, -50%);
+}
+.wind-canvas { z-index: 450; }
