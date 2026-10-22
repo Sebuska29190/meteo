@@ -16,7 +16,7 @@ export default function AlertsPage() {
     <div className="min-h-screen bg-[var(--bg)] overflow-auto">
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
-          <Link to="/" className="flex items-center gap-2 text-sm text-[var(--muted)] hover:text-white">
+          <Link to="/app" className="flex items-center gap-2 text-sm text-[var(--muted)] hover:text-white">
             <ArrowLeft size={16} /> {t.nav_map}
           </Link>
           <button onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')} className="text-xs font-semibold px-3 py-1.5 rounded-lg glass text-[var(--muted)] hover:text-white">

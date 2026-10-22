@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import LandingPage from './pages/LandingPage'
 import MapPage from './pages/MapPage'
 import AlertsPage from './pages/AlertsPage'
 
@@ -6,8 +7,9 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<MapPage />} />
-        <Route path="/alerts" element={<AlertsPage />} />
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/app" element={<MapPage />} />
+        <Route path="/app/alerts" element={<AlertsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

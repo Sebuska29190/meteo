@@ -67,3 +67,7 @@ h1, h2, h3, .display { font-family: 'Sora', 'Inter', sans-serif; }
   transform: translate(-50%, -50%);
 }
 .wind-canvas { z-index: 450; }
+
+.bolt-wrap { background: transparent !important; border: none !important; }
+.bolt-icon { font-size: 13px; filter: drop-shadow(0 0 4px rgba(255,210,63,0.9)); animation: boltIn .3s ease; display:inline-block; transform: translateY(-8px); }
+@keyframes boltIn { from { transform: translateY(-14px) scale(1.6); opacity: 0; } to { transform: translateY(-8px) scale(1); opacity: 1; } }
