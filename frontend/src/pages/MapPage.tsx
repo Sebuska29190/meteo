@@ -47,7 +47,7 @@ export default function MapPage() {
       {error && <p className="text-[var(--danger)] mb-2">{error}</p>}
       <div className="h-[70vh] rounded-lg overflow-hidden border border-[var(--border)]">
         <MapContainer center={[46.6, 2.5]} zoom={6} style={{ height: '100%', width: '100%' }}>
-          <TileLayer attribution='&copy; OpenStreetMap &copy; CARTO' url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
+          <TileLayer attribution='&copy; OpenStreetMap contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
           {geo && <GeoJSON data={geo} style={styleFn as any} />}
           {radarOn && radarTs && (
             <TileLayer
